@@ -4,6 +4,7 @@ Cible : ~5 min à deux. Format data storytelling. Ne pas lire mot à mot, c'est 
 Répartition : **Romain** ouvre et ferme (titre, 1, 2, 5), **Loriziano** porte le cœur technique (3, 4).
 
 Minutage indicatif :
+
 - Titre + Slide 1 (Romain) ............ ~1 min
 - Slide 2 (Romain) .................... ~1 min  -> *passage à Loriziano*
 - Slide 3 (Loriziano) ................ ~1 min
@@ -59,7 +60,7 @@ Sur la heatmap, on voit déjà ce qui corrèle avec le succès, l'oxygène en t�
 et une redondance entre nombre de Sherpas et taille d'équipe, qui va nous
 inspirer une variable.
 
-*(Je passe la parole à Loriziano.)*
+(Je passe la parole à Loriziano.)
 
 ---
 
@@ -115,7 +116,7 @@ le succès passe de 22 à 71 % selon le nombre de camps, ce qui mesure jusqu'où
 est monté. Et l'optimisation des hyperparamètres n'apporte rien : sur un modèle
 déjà bien posé, optimiser ne crée pas un signal qui n'existe pas.
 
-*(Je rends la parole à Romain.)*
+(Je rends la parole à Romain.)
 
 ---
 

@@ -13,13 +13,20 @@
 #   C. rope_bool = corde fixe utilisee ou non  -> TESTEE puis REJETEE
 # =============================================================
 
-import pandas as pd
+from pathlib import Path
+
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / "data"
+FIGURES = ROOT / "docs" / "figures"
+FIGURES.mkdir(parents=True, exist_ok=True)
 
 sns.set_theme(style="whitegrid")
 
-df = pd.read_csv("DataBase/exped.csv", low_memory=False)
+df = pd.read_csv(DATA / "exped.csv", low_memory=False)
 df = df.rename(columns={"success1": "success"})
 df = df[df["season"].isin(["Spring", "Summer", "Autumn", "Winter"])].copy()
 
@@ -30,12 +37,11 @@ df = df[df["season"].isin(["Spring", "Summer", "Autumn", "Winter"])].copy()
 # PROPORTION dans l'equipe. 4 Sherpas pour 4 membres (ratio 1) est un
 # encadrement bien plus fort que 4 Sherpas pour 20 membres (ratio 0.2).
 # =============================================================
-df = df[df["totmembers"] > 0].copy()            # evite la division par zero
+df = df[df["totmembers"] > 0].copy()  # evite la division par zero
 df["ratio_hired"] = df["tothired"] / df["totmembers"]
 
 # On regarde le taux de succes par tranche de ratio (binning pour lisibilite)
-df["tranche_ratio"] = pd.cut(df["ratio_hired"], [-0.01, 0.5, 1, 2, 100],
-                             labels=["< 0.5", "0.5 - 1", "1 - 2", "> 2"])
+df["tranche_ratio"] = pd.cut(df["ratio_hired"], [-0.01, 0.5, 1, 2, 100], labels=["< 0.5", "0.5 - 1", "1 - 2", "> 2"])
 taux = df.groupby("tranche_ratio", observed=True)["success"].mean()
 
 fig, ax = plt.subplots(figsize=(6, 4))
@@ -47,7 +53,7 @@ ax.set_title("Plus la proportion de Sherpas est forte, plus le succes monte")
 for i, v in enumerate(taux.values):
     ax.text(i, v + 0.02, f"{v:.0%}", ha="center", fontweight="bold")
 fig.tight_layout()
-fig.savefig("figures/05_ratio_hired.png", dpi=150)
+fig.savefig(FIGURES / "05_ratio_hired.png", dpi=150)
 plt.close(fig)
 # VERDICT : 49% (ratio<0.5) -> 64% (ratio 0.5-1). Signal net et monotone. GARDEE.
 
@@ -92,15 +98,14 @@ df["rope_bool"] = df["rope"] > 0
 taux_rope = df.groupby("rope_bool")["success"].mean()
 
 fig, ax = plt.subplots(figsize=(6, 4))
-ax.bar(["Sans corde fixe", "Avec corde fixe"], taux_rope.values,
-       color=["#95a5a6", "#7f8c8d"])
+ax.bar(["Sans corde fixe", "Avec corde fixe"], taux_rope.values, color=["#95a5a6", "#7f8c8d"])
 ax.set_ylim(0, 1)
 ax.set_ylabel("Taux de succes")
 ax.set_title("Corde fixe : aucun effet sur le succes (hypothese rejetee)")
 for i, v in enumerate(taux_rope.values):
     ax.text(i, v + 0.02, f"{v:.0%}", ha="center", fontweight="bold")
 fig.tight_layout()
-fig.savefig("figures/06_rope_bool.png", dpi=150)
+fig.savefig(FIGURES / "06_rope_bool.png", dpi=150)
 plt.close(fig)
 # VERDICT : 55% (sans) vs 54% (avec) -> ecart nul, voire inverse. De plus
 # 84% de zeros = sans doute "non renseigne" plutot que "zero metre", et la

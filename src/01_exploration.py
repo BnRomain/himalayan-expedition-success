@@ -13,10 +13,17 @@
 # https://www.kaggle.com/code/muhammedaliyilmazz/himalayan-climb-prediction-with-ml-dl
 # =============================================================
 
+from pathlib import Path
+
 import pandas as pd
 
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / "data"
+FIGURES = ROOT / "docs" / "figures"
+FIGURES.mkdir(parents=True, exist_ok=True)
+
 # ----- Chargement du dataset brut (65 colonnes) -----
-df_brut = pd.read_csv("DataBase/exped.csv", low_memory=False)
+df_brut = pd.read_csv(DATA / "exped.csv", low_memory=False)
 print("Dataset brut :", df_brut.shape[0], "lignes,", df_brut.shape[1], "colonnes")
 
 # ----- Reduction aux 20 features de Muhammed + la cible -----
@@ -105,8 +112,13 @@ for c in ["year", "totmembers", "tothired", "camps", "rope"]:
 
 print("\n-- Top 8 sommets les plus tentes : taux de succes --")
 top8 = df["peakid"].value_counts().head(8).index
-print(df[df["peakid"].isin(top8)].groupby("peakid")["success"]
-      .agg(["mean", "count"]).round(3).sort_values("count", ascending=False))
+print(
+    df[df["peakid"].isin(top8)]
+    .groupby("peakid")["success"]
+    .agg(["mean", "count"])
+    .round(3)
+    .sort_values("count", ascending=False)
+)
 
 
 # =============================================================
@@ -145,8 +157,7 @@ print(df[df["peakid"].isin(top8)].groupby("peakid")["success"]
 #                 au printemps), pas de la saison. Cf preuve en 04.
 #   rope_bool                         -> REJETEE : aucun signal (55% vs 54%).
 # =============================================================
-features_base = ["o2used", "comrte", "tothired", "totmembers",
-                 "camps", "season", "year", "peakid"]
+features_base = ["o2used", "comrte", "tothired", "totmembers", "camps", "season", "year", "peakid"]
 
 df_modele = df[features_base + ["success"]].copy()
 print("\n===== 4. JEU DE DONNEES POUR LE MODELE =====")

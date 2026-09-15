@@ -14,15 +14,22 @@
 # Toutes les figures sont exportees dans figures/ via plt.savefig pour le rapport.
 # =============================================================
 
-import pandas as pd
-import numpy as np
+from pathlib import Path
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / "data"
+FIGURES = ROOT / "docs" / "figures"
+FIGURES.mkdir(parents=True, exist_ok=True)
 
 sns.set_theme(style="whitegrid")  # grille legere, lisible en rapport
 
 # ----- Chargement + reduction (memes etapes que 01) -----
-df = pd.read_csv("DataBase/exped.csv", low_memory=False)
+df = pd.read_csv(DATA / "exped.csv", low_memory=False)
 df = df.rename(columns={"success1": "success"})
 
 # On enleve les 2 lignes "Unknown" en saison (donnee inexploitable, voir 01)
@@ -39,15 +46,14 @@ ordre_saisons = ["Spring", "Autumn", "Winter", "Summer"]
 # =============================================================
 fig, ax = plt.subplots(figsize=(6, 4))
 taux_o2 = df.groupby("o2used")["success"].mean()
-ax.bar(["Sans oxygene", "Avec oxygene"], taux_o2.values,
-       color=["#c0392b", "#27ae60"])
-ax.set_ylim(0, 1)                       # axe Y a zero : regle de base, pas de biais visuel
+ax.bar(["Sans oxygene", "Avec oxygene"], taux_o2.values, color=["#c0392b", "#27ae60"])
+ax.set_ylim(0, 1)  # axe Y a zero : regle de base, pas de biais visuel
 ax.set_ylabel("Taux de succes")
 ax.set_title("L'oxygene supplementaire double les chances de succes")
 for i, v in enumerate(taux_o2.values):
     ax.text(i, v + 0.02, f"{v:.0%}", ha="center", fontweight="bold")
 fig.tight_layout()
-fig.savefig("figures/01_effet_oxygene.png", dpi=150)
+fig.savefig(FIGURES / "01_effet_oxygene.png", dpi=150)
 plt.close(fig)
 
 
@@ -59,14 +65,13 @@ plt.close(fig)
 # Reponse : NON. +46 pts au printemps, ~0 en hiver. C'est une interaction,
 # donc une nouvelle feature o2used x season a du sens (cf Cours 4, Pclass x Age).
 # =============================================================
-pivot = (df.groupby(["season", "o2used"])["success"]
-         .mean().unstack().reindex(ordre_saisons))
+pivot = df.groupby(["season", "o2used"])["success"].mean().unstack().reindex(ordre_saisons)
 
 fig, ax = plt.subplots(figsize=(7, 4.5))
 x = np.arange(len(ordre_saisons))
 largeur = 0.38
-ax.bar(x - largeur/2, pivot[False], largeur, label="Sans O2", color="#c0392b")
-ax.bar(x + largeur/2, pivot[True],  largeur, label="Avec O2", color="#27ae60")
+ax.bar(x - largeur / 2, pivot[False], largeur, label="Sans O2", color="#c0392b")
+ax.bar(x + largeur / 2, pivot[True], largeur, label="Avec O2", color="#27ae60")
 ax.set_xticks(x)
 ax.set_xticklabels(["Printemps", "Automne", "Hiver", "Ete"])
 ax.set_ylim(0, 1)
@@ -74,7 +79,7 @@ ax.set_ylabel("Taux de succes")
 ax.set_title("L'effet de l'oxygene DEPEND de la saison (interaction)")
 ax.legend()
 fig.tight_layout()
-fig.savefig("figures/02_interaction_o2_saison.png", dpi=150)
+fig.savefig(FIGURES / "02_interaction_o2_saison.png", dpi=150)
 plt.close(fig)
 
 
@@ -88,29 +93,34 @@ plt.close(fig)
 # qu'a equipe egale les Sherpas font la difference -> le RATIO compte
 # (handcrafted feature ratio_hired). Plus parlant qu'un nuage de 11k points.
 # =============================================================
-df["bin_membres"] = pd.cut(df["totmembers"], [0, 3, 6, 10, 1e9],
-                           labels=["1-3", "4-6", "7-10", "11+"])
-df["bin_sherpas"] = pd.cut(df["tothired"], [-1, 0, 2, 5, 1e9],
-                           labels=["0", "1-2", "3-5", "6+"])
+df["bin_membres"] = pd.cut(df["totmembers"], [0, 3, 6, 10, 1e9], labels=["1-3", "4-6", "7-10", "11+"])
+df["bin_sherpas"] = pd.cut(df["tothired"], [-1, 0, 2, 5, 1e9], labels=["0", "1-2", "3-5", "6+"])
 
 # Taux de succes ET effectif de chaque case
-taux = df.pivot_table("success", "bin_sherpas", "bin_membres",
-                      aggfunc="mean", observed=True)
-effectif = df.pivot_table("success", "bin_sherpas", "bin_membres",
-                          aggfunc="size", observed=True)
-taux = taux.iloc[::-1]          # Sherpas: beaucoup en haut (lecture intuitive)
+taux = df.pivot_table("success", "bin_sherpas", "bin_membres", aggfunc="mean", observed=True)
+effectif = df.pivot_table("success", "bin_sherpas", "bin_membres", aggfunc="size", observed=True)
+taux = taux.iloc[::-1]  # Sherpas: beaucoup en haut (lecture intuitive)
 effectif = effectif.iloc[::-1]
-taux_masque = taux.mask(effectif < 20)   # on cache les cases peu fiables (n<20)
+taux_masque = taux.mask(effectif < 20)  # on cache les cases peu fiables (n<20)
 
 fig, ax = plt.subplots(figsize=(6.5, 5))
-sns.heatmap(taux_masque, annot=True, fmt=".0%", cmap="RdYlGn", center=0.5,
-            vmin=0.2, vmax=0.8, linewidths=1, ax=ax,
-            cbar_kws={"label": "Taux de succes"})
+sns.heatmap(
+    taux_masque,
+    annot=True,
+    fmt=".0%",
+    cmap="RdYlGn",
+    center=0.5,
+    vmin=0.2,
+    vmax=0.8,
+    linewidths=1,
+    ax=ax,
+    cbar_kws={"label": "Taux de succes"},
+)
 ax.set_xlabel("Nombre de membres")
 ax.set_ylabel("Nombre de Sherpas engages")
 ax.set_title("A equipe egale, le succes monte avec le nombre de Sherpas")
 fig.tight_layout()
-fig.savefig("figures/03_sherpas_vs_membres.png", dpi=150)
+fig.savefig(FIGURES / "03_sherpas_vs_membres.png", dpi=150)
 plt.close(fig)
 
 
@@ -123,16 +133,15 @@ plt.close(fig)
 # =============================================================
 df_num = df.copy()
 for col in ["o2used", "comrte", "success"]:
-    df_num[col] = df_num[col].astype(int)        # bool -> 0/1
+    df_num[col] = df_num[col].astype(int)  # bool -> 0/1
 cols_num = ["success", "o2used", "comrte", "tothired", "totmembers", "camps", "year"]
 corr = df_num[cols_num].corr()
 
 fig, ax = plt.subplots(figsize=(7, 6))
-sns.heatmap(corr, annot=True, fmt=".2f", cmap="RdBu_r", center=0,
-            vmin=-1, vmax=1, square=True, ax=ax)
+sns.heatmap(corr, annot=True, fmt=".2f", cmap="RdBu_r", center=0, vmin=-1, vmax=1, square=True, ax=ax)
 ax.set_title("Correlations entre features et avec la cible (success)")
 fig.tight_layout()
-fig.savefig("figures/04_correlations.png", dpi=150)
+fig.savefig(FIGURES / "04_correlations.png", dpi=150)
 plt.close(fig)
 
 
@@ -147,9 +156,16 @@ plt.close(fig)
 # se creuse avec la difficulte. On ne garde que les sommets ou CHAQUE groupe
 # (avec / sans O2) compte au moins 30 expeditions, pour des taux fiables.
 # =============================================================
-noms = {"EVER": "Everest", "KANG": "Kangchenjunga", "LHOT": "Lhotse",
-        "MAKA": "Makalu", "CHOY": "Cho Oyu", "DHA1": "Dhaulagiri",
-        "MANA": "Manaslu", "ANN1": "Annapurna"}
+noms = {
+    "EVER": "Everest",
+    "KANG": "Kangchenjunga",
+    "LHOT": "Lhotse",
+    "MAKA": "Makalu",
+    "CHOY": "Cho Oyu",
+    "DHA1": "Dhaulagiri",
+    "MANA": "Manaslu",
+    "ANN1": "Annapurna",
+}
 
 lignes = []
 for pk in noms:
@@ -159,7 +175,7 @@ for pk in noms:
     if len(sans) >= 30 and len(avec) >= 30:
         lignes.append((pk, sans["success"].mean(), avec["success"].mean()))
 
-lignes.sort(key=lambda t: t[1], reverse=True)   # du plus facile au plus dur (sans O2)
+lignes.sort(key=lambda t: t[1], reverse=True)  # du plus facile au plus dur (sans O2)
 labels = [noms[pk] for pk, _, _ in lignes]
 y_sans = [s for _, s, _ in lignes]
 y_avec = [a for _, _, a in lignes]
@@ -177,7 +193,7 @@ ax.set_xlabel("Sommets classes du plus accessible au plus difficile (sans oxygen
 ax.set_title("Sans oxygene, le sommet fait tout ; avec oxygene, l'ecart s'efface")
 ax.legend()
 fig.tight_layout()
-fig.savefig("figures/08_oxygene_par_sommet.png", dpi=150)
+fig.savefig(FIGURES / "08_oxygene_par_sommet.png", dpi=150)
 plt.close(fig)
 
 

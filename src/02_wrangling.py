@@ -13,25 +13,46 @@
 # parametres -> data leakage. Elle se fera donc en 05, apres le split.
 # =============================================================
 
+from pathlib import Path
+
 import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / "data"
+FIGURES = ROOT / "docs" / "figures"
+FIGURES.mkdir(parents=True, exist_ok=True)
 
 # =============================================================
 # 1. CHARGEMENT + REDUCTION AUX 21 FEATURES (= point de depart)
 # Cle = nom reel dans le CSV, valeur = nom lisible (cf gemini-code.md).
 # =============================================================
-df_brut = pd.read_csv("DataBase/exped.csv", low_memory=False)
+df_brut = pd.read_csv(DATA / "exped.csv", low_memory=False)
 
 correspondance = {
-    "year": "year", "season": "season", "peakid": "peakid",
-    "totmembers": "totmembers", "smtmembers": "smtmembers", "mdeaths": "mdeaths",
-    "tothired": "tothired", "smthired": "smthired", "hdeaths": "hdeaths",
-    "comrte": "comrte", "o2used": "o2used", "bcdate": "bcdate",
-    "smtdate": "smtdate", "termdate": "termdate", "totdays": "totdays",
-    "camps": "camps", "rope": "rope", "host": "host_country",
-    "nation": "expedition_nation", "route1": "primary_route", "success1": "success",
+    "year": "year",
+    "season": "season",
+    "peakid": "peakid",
+    "totmembers": "totmembers",
+    "smtmembers": "smtmembers",
+    "mdeaths": "mdeaths",
+    "tothired": "tothired",
+    "smthired": "smthired",
+    "hdeaths": "hdeaths",
+    "comrte": "comrte",
+    "o2used": "o2used",
+    "bcdate": "bcdate",
+    "smtdate": "smtdate",
+    "termdate": "termdate",
+    "totdays": "totdays",
+    "camps": "camps",
+    "rope": "rope",
+    "host": "host_country",
+    "nation": "expedition_nation",
+    "route1": "primary_route",
+    "success1": "success",
 }
 df = df_brut[list(correspondance.keys())].rename(columns=correspondance)
-df.to_csv("DataBase/exped_depart.csv", index=False)
+df.to_csv(DATA / "exped_depart.csv", index=False)
 print("exped_depart.csv :", df.shape[0], "lignes,", df.shape[1], "colonnes")
 
 
@@ -51,8 +72,7 @@ print(f"Lignes retirees (nettoyage) : {avant - len(df)}  ->  reste {len(df)}")
 # 3. SELECTION DES FEATURES RETENUES (8 de base + cible)
 # Tout le reste (data leakage + features ecartees, cf 01) est abandonne.
 # =============================================================
-features_base = ["o2used", "comrte", "tothired", "totmembers",
-                 "camps", "season", "year", "peakid"]
+features_base = ["o2used", "comrte", "tothired", "totmembers", "camps", "season", "year", "peakid"]
 df = df[features_base + ["success"]]
 
 
@@ -83,7 +103,7 @@ df = pd.get_dummies(df, columns=["season", "peakid"], drop_first=True, dtype=int
 # =============================================================
 # 5. SAUVEGARDE DU DATASET PROPRE
 # =============================================================
-df.to_csv("DataBase/exped_clean.csv", index=False)
+df.to_csv(DATA / "exped_clean.csv", index=False)
 print("exped_clean.csv  :", df.shape[0], "lignes,", df.shape[1], "colonnes")
 print("\nColonnes finales :")
 print(list(df.columns))
