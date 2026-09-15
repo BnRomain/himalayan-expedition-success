@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it using the metadata below."
+type: software
+title: "Himalayan expedition success: predicting whether an expedition reaches the summit with a logistic regression"
+abstract: >-
+  Data processing project on the Himalayan Expeditions dataset (Kaggle, from
+  The Himalayan Database): exploration and wrangling with pandas, selection of
+  the predictors known before departure to avoid data leakage, handcrafted
+  features tested against the data, and a logistic regression in a
+  scikit-learn pipeline validated by cross-validation. The model reaches 69.3 %
+  of accuracy against a 55 % baseline, with supplemental oxygen, the commercial
+  route and the difficulty of the peak as the main factors.
+authors:
+  - given-names: Romain
+    family-names: Ben
+    affiliation: "Polytech Nice Sophia, Université Côte d'Azur"
+  - given-names: Loriziano
+    family-names: Soave
+    affiliation: "Polytech Nice Sophia, Université Côte d'Azur"
+version: 1.1.0
+date-released: 2026-09-15
+license: MIT
+repository-code: "https://github.com/BnRomain/himalayan-expedition-success"
+keywords:
+  - data processing
+  - logistic regression
+  - data leakage
+  - feature engineering
+  - Himalaya
+  - Kaggle
+  - pandas
+  - scikit-learn
+  - Python
