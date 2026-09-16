@@ -1,0 +1,60 @@
+name: Bug report
+description: Report a crash, a wrong result or a problem in the documentation.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+        Please do not report security vulnerabilities here: follow the [security policy](https://github.com/BnRomain/himalayan-expedition-success/security/policy) instead.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - "Exploration and wrangling (src/01_exploration.py, src/02_wrangling.py)"
+        - "Visualisation and feature engineering (src/03_visualisation.py, src/04_feature_engineering.py)"
+        - "Logistic regression (src/05_regression.py)"
+        - "Tests (tests/)"
+        - "Figures, report or slides (docs/)"
+        - "CI / GitHub Actions"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened, and what did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The commands you ran, from a fresh clone if possible.
+      placeholder: |
+        pip install -r requirements.txt
+        python src/02_wrangling.py
+        python src/05_regression.py
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output and traceback
+      description: Paste the relevant output. It is formatted as code automatically.
+      render: shell
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Python version and the versions of pandas and scikit-learn (`pip freeze`).
+      placeholder: "Windows 11, Python 3.12.10, pandas 3.0.5, scikit-learn 1.9.1"
+    validations:
+      required: true

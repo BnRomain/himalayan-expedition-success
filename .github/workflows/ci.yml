@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Lint and check formatting with Ruff
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Run tests with coverage
+        run: python -m pytest -v
+
+      - name: Publish the coverage summary
+        if: always()
+        run: python -m coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+
+  # Runs the five scripts in order on data/exped.csv, publishes the scores of
+  # the regression and uploads the regenerated figures.
+  pipeline:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      MPLBACKEND: Agg
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Exploration, wrangling, visualisation and feature engineering
+        run: |
+          python src/01_exploration.py | tee exploration.log
+          python src/02_wrangling.py | tee wrangling.log
+          python src/03_visualisation.py
+          python src/04_feature_engineering.py | tee features.log
+
+      - name: Logistic regression
+        run: python src/05_regression.py | tee regression.log
+
+      - name: Publish the scores
+        run: |
+          {
+            echo "## Scores"
+            echo
+            echo '```text'
+            grep -E "Dataset|Lignes retirees" exploration.log wrangling.log | sed 's/^[a-z]*.log://'
+            grep -E "GARDEE|REJETEE" features.log
+            grep -E "Baseline|accuracy|Meilleurs|Modele|Gain" regression.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the figures
+        uses: actions/upload-artifact@v7
+        with:
+          name: figures
+          path: docs/figures
+
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Lint Markdown with markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v24
+        with:
+          globs: "**/*.md"
+
+      # Offline mode checks the links to repository files, the heading anchors
+      # and the images without depending on the availability of external sites.
+      - name: Check links, anchors and images with lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --include-fragments --no-progress .
+          jobSummary: true

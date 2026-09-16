@@ -1,0 +1,17 @@
+# Markdown lint configuration, used by the CI and by `npx markdownlint-cli2`.
+config:
+  # Prose is not wrapped, so long lines are allowed.
+  MD013: false
+  # The same heading can appear in different sections (for example "Example").
+  MD024:
+    siblings_only: true
+
+globs:
+  - "**/*.md"
+
+ignores:
+  # GitHub pre-fills the pull request description with it: it starts with a
+  # second-level heading on purpose.
+  - ".github/pull_request_template.md"
+
+gitignore: true
